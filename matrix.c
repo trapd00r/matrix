@@ -231,7 +231,7 @@ void parse_args(char *argv[], int argc)
           colorset_len = COLOR_GREEN_SIZE;
 
         }
-        else if(strcmp(optarg, COLORNAME_GREEN) == 0) {
+        else if(strcmp(optarg, COLORNAME_BLUE) == 0) {
           colorset = COLORS_BLUE;
           colorset_len = COLOR_BLUE_SIZE;
         }
