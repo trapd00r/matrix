@@ -139,8 +139,8 @@ void help(void)
   printf("\nusage: %s [FLAGS] ...", APPLICATION_NAME);
   printf("\n\t%s <STRING>\tspecifies a custom charset to use", ARGFLAG_CHARSET);
   printf("\n\t%s <STRING>\tspecifies the color to use; %s, %s, %s, %s", ARGFLAG_COLORNAME, COLORNAME_RED, COLORNAME_YELLOW, COLORNAME_GREEN, COLORNAME_BLUE);
-  printf("\n\t%s <STRING>\tspecifies maximum rows to print before clearing screen and starts a new matrix", ARGFLAG_ROWSET_MAX);
-  printf("\n\t%s <STRING>\tspecifies the chance for gaps in the matrix; 0.0 < x < 1.0", ARGFLAG_CHAR_GAP_CHANCE);
+  printf("\n\t%s <INTEGER>\tspecifies maximum rows to print before clearing screen and starts a new matrix", ARGFLAG_ROWSET_MAX);
+  printf("\n\t%s <FLOAT>\tspecifies the chance for gaps in the matrix; 0.0 < x < 1.0", ARGFLAG_CHAR_GAP_CHANCE);
 }
 
 /*void parse_args(char *argv[], int argc)
