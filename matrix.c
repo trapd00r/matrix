@@ -29,6 +29,7 @@ extern int colorset_len;
 
 extern int rowset_max;
 extern double char_gap_chance;
+extern int row_delay;
 
 int main(int argc, char *argv[])
 {
@@ -61,7 +62,7 @@ int main(int argc, char *argv[])
     }
 
     putchar('\n');
-    usleep(ROW_DELAY);
+    usleep(row_delay);
     row++;
   }
 
