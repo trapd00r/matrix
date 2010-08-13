@@ -12,6 +12,7 @@
 #include <math.h> /*pow()*/
 
 #include <unistd.h> /*usleep()*/
+#include <getopt.h> /*getopt(), optarg, optind*/
 
 
 /* dimensions */
@@ -46,6 +47,11 @@ const int COLORS_GREEN[COLOR_GREEN_SIZE] = {22, 28, 34, 40, 41, 42, 34, 35, 46, 
 #define COLOR_BLUE_SIZE 10
 const int COLORS_BLUE[COLOR_BLUE_SIZE] = {17, 18, 19, 20, 21, 25, 26, 27, 31, 32};
 
+
+void clear_screen(void)
+{
+  printf("\033[2;J");
+}
 
 void hide_cursor(void)
 {
@@ -129,12 +135,12 @@ void help(void)
 {
   printf("%s v%s", APPLICATION_NAME, APPLICATION_VERSION);
 
-  printf("\nusage: %s [FLAGS] ...", APPLICATION_NAME, APPLICATION_VERSION);
+  printf("\nusage: %s [FLAGS] ...", APPLICATION_NAME);
   printf("\n\t%s <STRING>\tspecifies a custom charset to use", ARGFLAG_CHARSET);
   printf("\n\t%s <STRING>\tspecifies the color to use; %s, %s, %s, %s", ARGFLAG_COLORNAME, COLORNAME_RED, COLORNAME_YELLOW, COLORNAME_GREEN, COLORNAME_BLUE);
 }
 
-void parse_args(char *argv[], int argc)
+/*void parse_args(char *argv[], int argc)
 {
   int i;
   for(i=1; i<argc; i++)
@@ -192,6 +198,63 @@ void parse_args(char *argv[], int argc)
     colorset = COLORS_GREEN;
     colorset_len = COLOR_GREEN_SIZE;
   }
+}*/
+
+void parse_args(char *argv[], int argc)
+{
+  int opt;
+  while((opt = getopt(argc, argv, "hc:C:")) != -1) {
+    switch(opt) {
+      case 'h':
+	help();
+	exit(EXIT_SUCCESS);
+
+      case 'c':
+        charset = optarg;
+
+        break;
+
+      case 'C':
+        if(strcmp(optarg, COLORNAME_RED) == 0) {
+          colorset = COLORS_RED;
+          colorset_len = COLOR_RED_SIZE;
+        }
+        else if(strcmp(optarg, COLORNAME_YELLOW) == 0) {
+          colorset = COLORS_YELLOW;
+          colorset_len = COLOR_YELLOW_SIZE;
+        }
+        else if(strcmp(optarg, COLORNAME_GREEN) == 0) {
+          colorset = COLORS_GREEN;
+          colorset_len = COLOR_GREEN_SIZE;
+
+        }
+        else if(strcmp(optarg, COLORNAME_GREEN) == 0) {
+          colorset = COLORS_BLUE;
+          colorset_len = COLOR_BLUE_SIZE;
+        }
+        else {
+          printf("error: invalid color \'%s\'", optarg);
+          exit(EXIT_FAILURE);
+        }
+
+        break;
+
+      default:
+        help();
+        exit(EXIT_SUCCESS);
+    }
+  }
+
+  if(charset == NULL) {
+    charset = DEFAULT_CHARSET;
+  }
+
+  charset_len = strlen(charset);
+
+  if(colorset == NULL) {
+    colorset = COLORS_GREEN;
+    colorset_len = COLOR_GREEN_SIZE;
+  }
 }
 
 int main(int argc, char *argv[])
@@ -207,7 +270,8 @@ int main(int argc, char *argv[])
   row = 0;
   while(1/*row<TERM_ROWS*/) {
     if(row % CLEAR_COUNT == 0) {
-      system(CLEAR_COMMAND);
+      /*system(CLEAR_COMMAND);*/
+      clear_screen();
       fill_array();
       bubble_sort(char_pos, MATRICES_MAX);
     }
