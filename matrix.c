@@ -6,12 +6,12 @@
 */
 
 
-#include <stdlib.h> /*atexit()*/
+#include <stdlib.h> /*atexit(), atoi(), atof()*/
 #include <string.h> /*strlen()*/
 #include <stdio.h> /*printf(), putchar()*/
 #include <math.h> /*pow()*/
 
-#include <unistd.h> /*usleep()*/
+#include <unistd.h> /*usleep(), getopt(), optarg, optind*/
 
 
 /* dimensions */
@@ -22,12 +22,11 @@
 
 #define COLUMNS_PER_CHAR (TERM_COLUMNS / MATRICES_MAX)
 
-#define CHAR_PAUSE_CHANCE 0.684 /* = (19/20) * (9/10) * (4/5)*/
+#define DEFAULT_GAP_CHANCE 0.684 /* = (19/20) * (9/10) * (4/5)*/
 
 #define ROW_DELAY 75000 /* usleep() sleeps in microseconds(us)*/
 
-#define CLEAR_COUNT 250
-#define CLEAR_COMMAND "clear"
+#define DEFAULT_ROWSET_MAX 250
 
 int char_pos[MATRICES_MAX] = {0};
 
@@ -46,6 +45,10 @@ const int COLORS_GREEN[COLOR_GREEN_SIZE] = {22, 28, 34, 40, 41, 42, 34, 35, 46, 
 #define COLOR_BLUE_SIZE 10
 const int COLORS_BLUE[COLOR_BLUE_SIZE] = {17, 18, 19, 20, 21, 25, 26, 27, 31, 32};
 
+void clear_screen(void)
+{
+  printf("\033[2;J");
+}
 
 void hide_cursor(void)
 {
@@ -107,20 +110,24 @@ double percent_to_chance(double percent)
 }
 
 const char ARGFLAG_HELP[] = "-h";
-const char ARGFLAG_LONG_HELP[] = "--help";
 const char ARGFLAG_CHARSET[] = "-c";
 const char ARGFLAG_COLORNAME[] = "-C";
+const char ARGFLAG_ROWSET_MAX[] = "-r";
+const char ARGFLAG_CHAR_GAP_CHANCE[] = "-R";
 
 const char COLORNAME_RED[] = "red";
 const char COLORNAME_YELLOW[] = "yellow";
 const char COLORNAME_GREEN[] = "green";
 const char COLORNAME_BLUE[] = "blue";
 
-const char *charset = NULL;
+const char *charset = DEFAULT_CHARSET;
 int charset_len = 0;
 
-const int *colorset = NULL;
-int colorset_len = 0;
+const int *colorset = COLORS_GREEN;
+int colorset_len = COLOR_GREEN_SIZE;
+
+int rowset_max = DEFAULT_ROWSET_MAX;
+double char_gap_chance = DEFAULT_GAP_CHANCE;
 
 const char APPLICATION_NAME[] = "matrix";
 const char APPLICATION_VERSION[] = "1.0";
@@ -129,12 +136,14 @@ void help(void)
 {
   printf("%s v%s", APPLICATION_NAME, APPLICATION_VERSION);
 
-  printf("\nusage: %s [FLAGS] ...", APPLICATION_NAME, APPLICATION_VERSION);
+  printf("\nusage: %s [FLAGS] ...", APPLICATION_NAME);
   printf("\n\t%s <STRING>\tspecifies a custom charset to use", ARGFLAG_CHARSET);
   printf("\n\t%s <STRING>\tspecifies the color to use; %s, %s, %s, %s", ARGFLAG_COLORNAME, COLORNAME_RED, COLORNAME_YELLOW, COLORNAME_GREEN, COLORNAME_BLUE);
+  printf("\n\t%s <INTEGER>\tspecifies maximum rows to print before clearing screen and starts a new matrix", ARGFLAG_ROWSET_MAX);
+  printf("\n\t%s <FLOAT>\tspecifies the chance for gaps in the matrix; 0.0 < x < 1.0", ARGFLAG_CHAR_GAP_CHANCE);
 }
 
-void parse_args(char *argv[], int argc)
+/*void parse_args(char *argv[], int argc)
 {
   int i;
   for(i=1; i<argc; i++)
@@ -192,6 +201,73 @@ void parse_args(char *argv[], int argc)
     colorset = COLORS_GREEN;
     colorset_len = COLOR_GREEN_SIZE;
   }
+}*/
+
+void parse_args(char *argv[], int argc)
+{
+  int opt;
+  while((opt = getopt(argc, argv, "hc:C:r:R:")) != -1) {
+    switch(opt) {
+      case 'h':
+	help();
+	exit(EXIT_SUCCESS);
+
+      case 'c':
+        charset = optarg;
+
+        break;
+
+      case 'C':
+        if(strcmp(optarg, COLORNAME_RED) == 0) {
+          colorset = COLORS_RED;
+          colorset_len = COLOR_RED_SIZE;
+        }
+        else if(strcmp(optarg, COLORNAME_YELLOW) == 0) {
+          colorset = COLORS_YELLOW;
+          colorset_len = COLOR_YELLOW_SIZE;
+        }
+        else if(strcmp(optarg, COLORNAME_GREEN) == 0) {
+          colorset = COLORS_GREEN;
+          colorset_len = COLOR_GREEN_SIZE;
+
+        }
+        else if(strcmp(optarg, COLORNAME_GREEN) == 0) {
+          colorset = COLORS_BLUE;
+          colorset_len = COLOR_BLUE_SIZE;
+        }
+        else {
+          printf("error: invalid color \'%s\'", optarg);
+          exit(EXIT_FAILURE);
+        }
+
+        break;
+
+      case 'r':
+        rowset_max = atoi(optarg);
+        if(rowset_max == 0) {
+          printf("error: invalid integer value \'%s\'", optarg);
+          exit(EXIT_FAILURE);
+        }
+
+	break;
+
+      case 'R':
+	
+        char_gap_chance = atof(optarg);
+        if(char_gap_chance == 0.0) {
+          printf("error: invalid float value \'%s\'", optarg);
+          exit(EXIT_FAILURE);
+        }
+
+        break;
+
+      default:
+        help();
+        exit(EXIT_SUCCESS);
+    }
+  }
+
+  charset_len = strlen(charset);
 }
 
 int main(int argc, char *argv[])
@@ -206,8 +282,9 @@ int main(int argc, char *argv[])
 
   row = 0;
   while(1/*row<TERM_ROWS*/) {
-    if(row % CLEAR_COUNT == 0) {
-      system(CLEAR_COMMAND);
+    if(row % rowset_max == 0) {
+      /*system(CLEAR_COMMAND);*/
+      clear_screen();
       fill_array();
       bubble_sort(char_pos, MATRICES_MAX);
     }
@@ -215,7 +292,7 @@ int main(int argc, char *argv[])
     for(column=0; column<MATRICES_MAX; column++) {
       print_nchars(' ', char_pos[column] - (column * (COLUMNS_PER_CHAR - 1)));
 
-      if(rand() % (int)percent_to_chance(CHAR_PAUSE_CHANCE) <= 100.0) {
+      if(rand() % (int)percent_to_chance(char_gap_chance) <= 100.0) {
         print_row(charset[rand() % charset_len], colorset[rand() % colorset_len]);
       }
       else {
