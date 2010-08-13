@@ -8,5 +8,5 @@ matrix:
 	$(CC) $(CC_FLAGS) -o ./matrix ./matrix.c $(CC_LIBS)
 
 clean:
-	rm -f ./matrix
+	rm -fv ./matrix
 
