@@ -7,6 +7,16 @@
 #ifndef __MATRIX_H__
 #define __MATRIX_H__
 
+/* includes
+*/
+#include <stdlib.h>    /*calloc(), free(), atoi(), atof(), srand()*/
+#include <string.h>    /*NULL, strlen()*/
+#include <stdio.h>     /*printf(), putchar()*/
+#include <math.h>      /*pow()*/
+
+#include <unistd.h>    /*getopt(), optarg, optind*/
+
+
 /* info constants */
 const char APPLICATION_NAME[]     = "matrix";
 const char APPLICATION_VERSION[]  = "0.3.2";
@@ -35,7 +45,7 @@ const char ARGFLAG_ALL[]            = "hc:C:n:r:R:D:";
 
 const char ARGFLAG_HELP             = 'h';
 const char ARGFLAG_CHARSET          = 'c';
-const char ARGFLAG_COLOR_NAME        = 'C';
+const char ARGFLAG_COLOR_NAME       = 'C';
 const char ARGFLAG_MATRIX_CNT       = 'n';
 const char ARGFLAG_ROWSET_MAX       = 'r';
 const char ARGFLAG_CHAR_GAP_CHANCE  = 'R';
@@ -44,15 +54,12 @@ const char ARGFLAG_ROW_DELAY        = 'D';
 
 /* dimensions
 */
-#define TERM_COLUMNS        178  /*80*/
-#define TERM_ROWS           54   /*24*/
+#define TERM_COLUMNS          178  /*80*/
+#define TERM_ROWS             54   /*24*/
 
-#define MATRICES_MAX        10
-#define COLUMNS_PER_CHAR    (TERM_COLUMNS / MATRICES_MAX)
-
-#define DEFAULT_ROWSET_MAX  250
-#define DEFAULT_GAP_CHANCE  0.5
-#define DEFAULT_ROW_DELAY   75000  /* usleep() sleeps in microseconds(us)*/
+#define DEFAULT_ROWSET_MAX    250
+#define DEFAULT_GAP_CHANCE    0.5
+#define DEFAULT_ROW_DELAY     75000  /* usleep() sleeps in microseconds(us)*/
 
 
 /* characters and colors
@@ -78,7 +85,11 @@ const char COLOR_NAME_BLUE[]                      = "blue";
 
 /* global variables
 */
-int matrix[MATRICES_MAX] = {0};
+#define DEFAULT_MATRIX_COUNT  10
+
+int *matrix             = NULL;
+int matrix_cnt          = DEFAULT_MATRIX_COUNT;
+int columns_per_char    = 0;
 
 const char *charset     = DEFAULT_CHARSET;
 int charset_len         = 0;
@@ -139,6 +150,11 @@ void parse_args(char *argv[], int argc)
       }
     }
     else if(opt == ARGFLAG_MATRIX_CNT) {
+        matrix_cnt = atoi(optarg);
+        if(matrix_cnt <= 0) {
+          printf("error: invalid integer value \'%s\'", optarg);
+          exit(EXIT_FAILURE);
+        }
     }
     else if(opt == ARGFLAG_ROWSET_MAX) {
         rowset_max = atoi(optarg);
@@ -169,7 +185,22 @@ void parse_args(char *argv[], int argc)
     opt = getopt(argc, argv, ARGFLAG_ALL);
   }
 
+  matrix = (int *)calloc(matrix_cnt, sizeof(int));
+  if(matrix == NULL) {
+    printf("error: could not allocate memory");
+    exit(EXIT_FAILURE);
+  }
+
+  columns_per_char = TERM_COLUMNS / matrix_cnt;
+
   charset_len = strlen(charset);
+}
+
+void cleanup(void)
+{
+  if(matrix != NULL) {
+   free(matrix);
+  }
 }
 
 void clear_screen(void)
@@ -208,11 +239,11 @@ void print_array(const int array[], const int array_size)
   }
 }
 
-void fill_array(int array[], const int matrice_cnt)
+void fill_array(int array[], const int matrice_cnt, const int max_column_gap)
 {
   int i;
   for(i=0; i<matrice_cnt; i++) {
-    array[i] = (rand() % COLUMNS_PER_CHAR) + (i * COLUMNS_PER_CHAR);
+    array[i] = (rand() % max_column_gap) + (i * max_column_gap);
   }
 }
 

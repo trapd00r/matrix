@@ -1,5 +1,5 @@
 CC := gcc
-CC_FLAGS := -Wall -pedantic -ansi -D_POSIX_C_SOURCE=199309L
+CC_FLAGS := -pedantic -ansi -D_POSIX_C_SOURCE=199309L
 CC_LIBS := -lm
 
 all: matrix

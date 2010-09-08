@@ -7,19 +7,21 @@
 
 /* includes
 */
-#include <stdlib.h>    /*atexit(), atoi(), atof()*/
-#include <string.h>    /*strlen()*/
-#include <stdio.h>     /*printf(), putchar()*/
+#include <stdlib.h>    /*atexit()*/
+#include <stdio.h>     /*putchar()*/
+#include <time.h>      /*time()*/
 #include <math.h>      /*pow()*/
 
-#include <unistd.h>    /*usleep(), getopt(), optarg, optind*/
+#include <unistd.h>    /*usleep()*/
 
 #include "./matrix.h"  /* application custom constants and functions */
 
 
 /* extern global variables imported from matrix.h
 */
-extern int matrix[MATRICES_MAX];
+extern int *matrix;
+extern int matrix_cnt;
+extern int columns_per_char;
 
 extern const char *charset;
 extern int charset_len;
@@ -31,27 +33,31 @@ extern int rowset_max;
 extern double char_gap_chance;
 extern int row_delay;
 
+void init(void)
+{
+  srand((unsigned int)time(NULL));
+
+  hide_cursor();
+  atexit(cleanup);
+  atexit(show_cursor);
+}
+
 int main(int argc, char *argv[])
 {
   int row, column;
-
-  atexit(show_cursor);
   parse_args(argv, argc);
-
-  srand(time(NULL));
-  hide_cursor();
+  init();
 
   row = 0;
-  while(1/*row<TERM_ROWS*/) {
+  while(1) {
     if(row % rowset_max == 0) {
-      /*system(CLEAR_COMMAND);*/
       clear_screen();
-      fill_array(matrix, MATRICES_MAX);
-      bubble_sort(matrix, MATRICES_MAX);
+      fill_array(matrix, matrix_cnt, columns_per_char);
+      bubble_sort(matrix, matrix_cnt);
     }
 
-    for(column=0; column<MATRICES_MAX; column++) {
-      print_nchars(' ', matrix[column] - (column * (COLUMNS_PER_CHAR - 1)));
+    for(column=0; column<matrix_cnt; column++) {
+      print_nchars(' ', *(matrix + column) - (column * (columns_per_char - 1)));
 
       if(rand() % (int)percent_to_chance(char_gap_chance) <= 100.0) {
         print_row(charset[rand() % charset_len], colorset[rand() % colorset_len]);
