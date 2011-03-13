@@ -135,11 +135,11 @@ void parse_args(char *argv[], int argc)
         colorset = COLOR_ARRAY_YELLOW;
         colorset_len = COLOR_SIZE_YELLOW;
       }
-      else if(strcmp(optarg, COLOR_NAME_GREEN) == 0) {
+      /*else if(strcmp(optarg, COLOR_NAME_GREEN) == 0) {
         colorset = COLOR_ARRAY_GREEN;
         colorset_len = COLOR_SIZE_GREEN;
 
-      }
+      }*/
       else if(strcmp(optarg, COLOR_NAME_BLUE) == 0) {
         colorset = COLOR_ARRAY_BLUE;
         colorset_len = COLOR_SIZE_BLUE;
@@ -205,17 +205,23 @@ void cleanup(void)
 
 void clear_screen(void)
 {
-  printf(CMD_BASH_CLEAR_SCREEN);
+  printf("%s", CMD_BASH_CLEAR_SCREEN);
 }
 
 void hide_cursor(void)
 {
-  printf(CMD_BASH_HIDE_CURSOR);
+  printf("%s", CMD_BASH_HIDE_CURSOR);
 }
 
 void show_cursor(void)
 {
-  printf(CMD_BASH_SHOW_CURSOR);
+  printf("%s", CMD_BASH_SHOW_CURSOR);
+}
+
+void terminate(int sig)
+{
+  show_cursor();
+  exit(EXIT_SUCCESS);
 }
 
 void print_nchars(const char ch, const int cnt)

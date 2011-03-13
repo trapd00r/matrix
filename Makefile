@@ -1,11 +1,11 @@
 CC := gcc
-CC_FLAGS := -pedantic -ansi -D_POSIX_C_SOURCE=199309L
-CC_LIBS := -lm
+CFLAGS := -pedantic -ansi -D_POSIX_C_SOURCE=199309L
+CLIBS := -lm
 
 all: matrix
 
 matrix:
-	$(CC) $(CC_FLAGS) -o ./bin/matrix ./src/matrix.c $(CC_LIBS)
+	$(CC) $(CFLAGS) -o ./bin/matrix ./src/matrix.c $(CLIBS)
 
 install:
 	cp -v ./bin/matrix /usr/local/bin

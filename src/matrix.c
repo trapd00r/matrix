@@ -11,6 +11,7 @@
 #include <stdio.h>     /*putchar()*/
 #include <time.h>      /*time()*/
 #include <math.h>      /*pow()*/
+#include <signal.h>    /*signal()*/
 
 #include <unistd.h>    /*usleep()*/
 
@@ -39,7 +40,7 @@ void init(void)
 
   hide_cursor();
   atexit(cleanup);
-  atexit(show_cursor);
+  signal(SIGINT, terminate);
 }
 
 int main(int argc, char *argv[])
